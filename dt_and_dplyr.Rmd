@@ -1,0 +1,261 @@
+---
+title: '`data.table` vs `tidyverse`'
+output:
+  html_document: default
+  html_notebook: default
+---
+
+```{r, message=FALSE,warning=FALSE}
+library(data.table)
+library(dplyr)
+```
+
+#### resources
+
+free intro to both packages through [datacamp](https://www.datacamp.com/home) (more than intro costs $)
+
+* [dplyr](https://www.datacamp.com/courses/dplyr-data-manipulation-r-tutorial)
+* [data.table](https://campus.datacamp.com/courses/data-table-data-manipulation-r-tutorial)
+
+# Creating/Inspecting dataframes
+
+Creating a dataframe in `dplyr` or `data.table` is very similiar to creating a dataframe in base `R`.  An advantage of dataframe creation for both packages is that `stringAsFactors` defaults to `FALSE`.
+
+Examining the structure of both df/dt we can start to see some differences.  The `dplyr` dataframe has classes `tbl_df`, `tbl`, & `data.frame`.  The `data.table` has classes `data.table` & `data.frame`.  They both have class `data.frame` so we'll be able to call functions written for the base `R` class.
+
+The last difference we can see in the sturcture is that `data.table` has a pointer attribute named `.internal.selfref`.  This attribute will allow us to modify the `data.table` by reference for some operations and avoid copy-on-modify.
+
+Lastly, we can print the two dataframes and see that they both have console friendly print methods for large datasets.
+
+```{r, echo=TRUE}
+len      <- 1e5
+col_inds <- 1:len
+col_grps <- sample(letters[1:3], len, replace=TRUE)
+col_vals <- rnorm(len)
+
+#df creation-----------------------------------------
+df <- dplyr::data_frame(ind = col_inds,
+                        grp = col_grps,
+                        val = col_vals)
+
+dt <- data.table::data.table(ind = col_inds,
+                             grp = col_grps,
+                             val = col_vals)
+#df structure-----------------------------------------
+str(df)
+str(dt)
+
+#print methods----------------------------------------
+df
+dt
+```
+
+# Writing/Reading csvs
+
+## Writing
+Again, the syntax for writing csvs in both frameworks is very similiar to writing a csv in base.  An advantage of both over base, in my opinion, is the omission of writing row.names by default.  The `fwrite` function has the ability to set `row.names=TRUE` while the `readr` implementation does not have an argument for rownames.
+
+```{r, echo=FALSE}
+options(scipen=999)
+df_time <- system.time(readr::write_csv(df, "readr_out.csv"))
+dt_time <- system.time(data.table::fwrite(dt, "fwrite_out.csv"))
+```
+
+`fwrite` stands for 'fast write' and it lives up to the hype.  In our example 100,000 rows the `readr` implentation is decidely slower (`r round(100*(df_time[[3]]/dt_time[[3]]))`% slower for this knit).  From `?fwrite` documentation: 'Modern machines almost surely have more than one CPU so fwrite uses them.'
+
+```{r, eval=FALSE}
+system.time(readr::write_csv(df, "readr_out.csv"))
+```
+```{r, echo=FALSE}
+df_time
+```
+
+```{r, eval=FALSE}
+system.time(data.table::fwrite(dt, "fwrite_out.csv"))
+```
+```{r, echo=FALSE}
+dt_time
+```
+
+## Reading
+
+Just for fun we'll switch read in the file that the opposing package wrote out (WoOoOoOoO!)
+
+With the current size of our data the read times for `readr` and `data.table` are very similiar; both are typically executing in under a second on my machine.  In both functions we can specify the column classes.  Using `readr` we can specify the `col_types` using shorthand or full names.
+
+Both functions, of course, read the csv into the two different structures that we saw above.
+
+This example doesn't show it, but `fread` scales to much larger data sets better than `readr`.  On a 40 million row x 3 column data set `readr` completed the read in a little over 2.5 minutes, while `fread` completed the job in 14 seconds.
+
+```{r, echo=FALSE}
+options(scipen=999)
+df_time <- system.time(readr::read_csv("fwrite_out.csv"))
+dt_time <- system.time(data.table::fread("readr_out.csv"))
+```
+
+```{r, eval=FALSE}
+system.time(readr::read_csv("fwrite_out.csv", col_types = "icn"))
+```
+```{r, echo=FALSE}
+df_time
+```
+
+```{r, eval=FALSE}
+system.time(data.table::fread("readr_out.csv", colClasses = c("integer", "character", "numeric")))
+```
+```{r, echo=FALSE}
+dt_time
+```
+
+# Data Manipulation
+
+This is mostly going to be a collection of example syntax for performing operations in the different frameworks.  Commentary on the code chunks will be limited.
+
+_(note: this doc is geared towards `dplyr` users that are less familiar with `data.table`.)_
+
+### data.table syntax intro
+
+Operations in `data.table` primarily use `[`.  In base `[` typically is used for subsetting and given just 2 arguments when used with a dataframe: rows (`i`) and columns (`j`).  When used with a `data.table` the brackets assume new functionality.  The `[` still take `i` & `j` like arguments but a 3rd argument (`by`) is now assumed to be a grouping variable (`dt[i, j, by]`).  Other differences between `data.table` and include: ability to reference column names without `df$` syntax increased computational functionality in the `j` argument.
+
+## Filtering
+```{r, eval=FALSE}
+#dplyr
+df %>% 
+  filter(grp == "a")
+
+#data.table
+dt[grp=="a",]
+
+#base
+df[df$grp=="a",]
+```
+
+## Sorting
+
+Sort by `ind` in descending order.
+```{r, eval=FALSE}
+#dplyr
+df %>% 
+  arrange(desc(grp))
+
+#data.table
+dt[order(grp),]
+#setkey(dt, grp)
+
+#base
+df[order(df$grp),]
+```
+
+# Creating/Storing/Deleting a column
+
+## Create & store new column
+Here we see a few new items in the `data.table` methodology.  
+
+In `dplyr` in order to create a new column and store the result we will have to create the column and then copy our data.frame to a new address for storage (this move can be seen by the change in `address(df)`).  However, the operator `:=` from `data.table` creates the new column by reference so we do not copy our table to a new address; this can be a big performance boost for large datasets.
+
+The next thing we see in `data.table` is the introduction of `.N`, which evaluates to `nrow(dt)` when called from `` `[.data.table` ``.  In the `dplyr` pipeline we get the number of rows using the `.` sytnax associated with `` `%>%` ``.
+```{r, eval=FALSE}
+#dplyr
+address(df) #"00000000691018D0"
+df <- df %>% 
+  mutate(new_col = runif(nrow(.)))
+address(df) #"000000002A3825A8"
+
+#data.table
+address(dt) #"00000000117125C0"
+dt[,new_col := runif(.N)]
+address(dt) #"00000000117125C0"
+#dt[,.(ind, grp, val, new_col = runif(.N))]
+```
+## Delete column
+
+```{r, eval=FALSE}
+df <- df %>% 
+  select(-new_col)
+
+dt[,new_col := NULL]
+```
+
+## Create column without storing
+
+Some new shorthand is again introced in the `data.table` syntax used here.  The `.SD` references all columns not included in the grouping `by` argument of `` `[.data.table` ``.  This evaluates to a list of columns (i.e. a dataframe), and we can add columns by `c`ombining a new list of columns to `.SD`.  If `j` evaluates to a list of equal lenght columns `` `[.data.table` `` will interpret it as a `data.table`.
+
+```{r}
+df %>% 
+  mutate(new_col = runif(nrow(.)))
+
+dt[,c(.SD, list(newnew = runif(.N)))]
+```
+
+
+# Summarising and Grouping
+
+_note: `dplyr` applies sorting by the grouping variable when summarising; `data.table` orders the summarization by the first appearance of each distinct value in the grouping variable_
+
+```{r}
+#using default naming
+df %>% 
+  group_by(grp) %>% 
+  summarise(mean(val))
+
+#using default naming
+dt[,mean(val), by=grp]
+
+#using custom naming
+df %>% 
+  group_by(grp) %>% 
+  summarise(my_mean = mean(val))
+
+#using custom naming
+dt[,.(my_mean = mean(val)), by=grp]
+```
+
+# Joins
+
+## Left join
+
+`dplyr` has very descriptive `?join` functions, while `data.table` can use short hand of `dt[dt2]` or `merge`.  The `merge` syntax is similiar the base `merge`.
+
+```{r, eval=FALSE}
+df2 <- df
+df %>% 
+  left_join(df2, by="ind")
+
+dt2 <- dt
+setkey(dt, ind)
+setkey(dt2, ind)
+
+dt[dt2]
+merge(dt, dt2, by = "ind", all.x = TRUE)
+```
+
+# Transforming columns
+
+```{r}
+df %>% 
+  mutate_all(as.character)
+
+dt[,lapply(.SD, as.character)]
+```
+
+
+# Additional stuff
+
+```{r}
+# count per group
+df %>% count(grp)
+dt[,.N, grp]
+
+#eval operation to vector
+dt[,sum(val)]
+
+#eval operation to vector where 
+dt[grp=="b", sum(val)]
+
+#referencing rows by key value
+setkey(dt, grp)
+dt[.("b"), sum(val)]
+```
+
+[last minute example thrown in](http://stackoverflow.com/questions/43957195/linear-interpolation-by-group-in-r/43957539#43957539)
+
