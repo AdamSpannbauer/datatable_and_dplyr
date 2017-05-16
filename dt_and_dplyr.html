@@ -121,7 +121,7 @@ $(document).ready(function () {
 
 
 <pre class="r"><code>library(data.table)
-library(dplyr)</code></pre>
+library(tidyverse)</code></pre>
 <div id="resources" class="section level4">
 <h4>resources</h4>
 <p>free intro to both packages through <a href="https://www.datacamp.com/home">datacamp</a> (more than intro costs $)</p>
@@ -153,56 +153,56 @@ dt &lt;- data.table::data.table(ind = col_inds,
 str(df)</code></pre>
 <pre><code>## Classes 'tbl_df', 'tbl' and 'data.frame':    100000 obs. of  3 variables:
 ##  $ ind: int  1 2 3 4 5 6 7 8 9 10 ...
-##  $ grp: chr  &quot;b&quot; &quot;b&quot; &quot;c&quot; &quot;c&quot; ...
-##  $ val: num  -0.131 -0.262 0.725 -1.43 1.043 ...</code></pre>
+##  $ grp: chr  &quot;a&quot; &quot;b&quot; &quot;b&quot; &quot;a&quot; ...
+##  $ val: num  1.181 -0.828 -1.016 -1.748 0.474 ...</code></pre>
 <pre class="r"><code>str(dt)</code></pre>
 <pre><code>## Classes 'data.table' and 'data.frame':   100000 obs. of  3 variables:
 ##  $ ind: int  1 2 3 4 5 6 7 8 9 10 ...
-##  $ grp: chr  &quot;b&quot; &quot;b&quot; &quot;c&quot; &quot;c&quot; ...
-##  $ val: num  -0.131 -0.262 0.725 -1.43 1.043 ...
+##  $ grp: chr  &quot;a&quot; &quot;b&quot; &quot;b&quot; &quot;a&quot; ...
+##  $ val: num  1.181 -0.828 -1.016 -1.748 0.474 ...
 ##  - attr(*, &quot;.internal.selfref&quot;)=&lt;externalptr&gt;</code></pre>
 <pre class="r"><code>#print methods----------------------------------------
 df</code></pre>
 <pre><code>## # A tibble: 100,000 × 3
 ##      ind   grp         val
 ##    &lt;int&gt; &lt;chr&gt;       &lt;dbl&gt;
-## 1      1     b -0.13130005
-## 2      2     b -0.26192672
-## 3      3     c  0.72536238
-## 4      4     c -1.43026665
-## 5      5     b  1.04344507
-## 6      6     b  0.51934974
-## 7      7     c -0.24543339
-## 8      8     b -0.00534988
-## 9      9     c -0.60651521
-## 10    10     b  0.05381769
+## 1      1     a  1.18126234
+## 2      2     b -0.82819271
+## 3      3     b -1.01646764
+## 4      4     a -1.74805006
+## 5      5     b  0.47432866
+## 6      6     a -0.49954790
+## 7      7     b -1.35681540
+## 8      8     c -1.38033865
+## 9      9     c -0.06298163
+## 10    10     c  1.02708478
 ## # ... with 99,990 more rows</code></pre>
 <pre class="r"><code>dt</code></pre>
-<pre><code>##            ind grp          val
-##      1:      1   b -0.131300051
-##      2:      2   b -0.261926719
-##      3:      3   c  0.725362379
-##      4:      4   c -1.430266648
-##      5:      5   b  1.043445074
-##     ---                        
-##  99996:  99996   a  0.389750673
-##  99997:  99997   b  0.854971570
-##  99998:  99998   c -0.775468712
-##  99999:  99999   a -1.430625513
-## 100000: 100000   a -0.004633998</code></pre>
+<pre><code>##            ind grp         val
+##      1:      1   a  1.18126234
+##      2:      2   b -0.82819271
+##      3:      3   b -1.01646764
+##      4:      4   a -1.74805006
+##      5:      5   b  0.47432866
+##     ---                       
+##  99996:  99996   b  0.09647605
+##  99997:  99997   a -0.76529748
+##  99998:  99998   b  0.83032548
+##  99999:  99999   b  0.27663171
+## 100000: 100000   c  0.64259971</code></pre>
 </div>
 <div id="writingreading-csvs" class="section level1">
 <h1>Writing/Reading csvs</h1>
 <div id="writing" class="section level2">
 <h2>Writing</h2>
 <p>Again, the syntax for writing csvs in both frameworks is very similiar to writing a csv in base. An advantage of both over base, in my opinion, is the omission of writing row.names by default. The <code>fwrite</code> function has the ability to set <code>row.names=TRUE</code> while the <code>readr</code> implementation does not have an argument for rownames.</p>
-<p><code>fwrite</code> stands for ‘fast write’ and it lives up to the hype. In our example 100,000 rows the <code>readr</code> implentation is decidely slower (15400% slower for this knit). From <code>?fwrite</code> documentation: ‘Modern machines almost surely have more than one CPU so fwrite uses them.’</p>
+<p><code>fwrite</code> stands for ‘fast write’ and it lives up to the hype. In our example 100,000 rows the <code>readr</code> implentation is decidely slower (396% slower for this knit). From <code>?fwrite</code> documentation: ‘Modern machines almost surely have more than one CPU so fwrite uses them.’</p>
 <pre class="r"><code>system.time(readr::write_csv(df, &quot;readr_out.csv&quot;))</code></pre>
 <pre><code>##    user  system elapsed 
-##    0.24    0.43    6.16</code></pre>
+##   0.080   0.009   0.091</code></pre>
 <pre class="r"><code>system.time(data.table::fwrite(dt, &quot;fwrite_out.csv&quot;))</code></pre>
 <pre><code>##    user  system elapsed 
-##    0.02    0.00    0.04</code></pre>
+##   0.019   0.002   0.023</code></pre>
 </div>
 <div id="reading" class="section level2">
 <h2>Reading</h2>
@@ -210,18 +210,12 @@ df</code></pre>
 <p>With the current size of our data the read times for <code>readr</code> and <code>data.table</code> are very similiar; both are typically executing in under a second on my machine. In both functions we can specify the column classes. Using <code>readr</code> we can specify the <code>col_types</code> using shorthand or full names.</p>
 <p>Both functions, of course, read the csv into the two different structures that we saw above.</p>
 <p>This example doesn’t show it, but <code>fread</code> scales to much larger data sets better than <code>readr</code>. On a 40 million row x 3 column data set <code>readr</code> completed the read in a little over 2.5 minutes, while <code>fread</code> completed the job in 14 seconds.</p>
-<pre><code>## Parsed with column specification:
-## cols(
-##   ind = col_integer(),
-##   grp = col_character(),
-##   val = col_double()
-## )</code></pre>
 <pre class="r"><code>system.time(readr::read_csv(&quot;fwrite_out.csv&quot;, col_types = &quot;icn&quot;))</code></pre>
 <pre><code>##    user  system elapsed 
-##    0.06    0.01    0.14</code></pre>
+##   0.053   0.020   0.090</code></pre>
 <pre class="r"><code>system.time(data.table::fread(&quot;readr_out.csv&quot;, colClasses = c(&quot;integer&quot;, &quot;character&quot;, &quot;numeric&quot;)))</code></pre>
 <pre><code>##    user  system elapsed 
-##    0.11    0.00    0.17</code></pre>
+##   0.056   0.001   0.058</code></pre>
 </div>
 </div>
 <div id="data-manipulation" class="section level1">
@@ -293,30 +287,30 @@ dt[,new_col := NULL]</code></pre>
 <pre><code>## # A tibble: 100,000 × 4
 ##      ind   grp         val   new_col
 ##    &lt;int&gt; &lt;chr&gt;       &lt;dbl&gt;     &lt;dbl&gt;
-## 1      1     b -0.13130005 0.5490476
-## 2      2     b -0.26192672 0.7034221
-## 3      3     c  0.72536238 0.3226310
-## 4      4     c -1.43026665 0.1856312
-## 5      5     b  1.04344507 0.2367223
-## 6      6     b  0.51934974 0.3143088
-## 7      7     c -0.24543339 0.1321490
-## 8      8     b -0.00534988 0.3624733
-## 9      9     c -0.60651521 0.6972292
-## 10    10     b  0.05381769 0.5929636
+## 1      1     a  1.18126234 0.7418540
+## 2      2     b -0.82819271 0.2075200
+## 3      3     b -1.01646764 0.7557486
+## 4      4     a -1.74805006 0.7910403
+## 5      5     b  0.47432866 0.9550734
+## 6      6     a -0.49954790 0.6773630
+## 7      7     b -1.35681540 0.2646376
+## 8      8     c -1.38033865 0.7618366
+## 9      9     c -0.06298163 0.3224913
+## 10    10     c  1.02708478 0.5665025
 ## # ... with 99,990 more rows</code></pre>
 <pre class="r"><code>dt[,c(.SD, list(newnew = runif(.N)))]</code></pre>
-<pre><code>##            ind grp          val     newnew
-##      1:      1   b -0.131300051 0.69817989
-##      2:      2   b -0.261926719 0.69973972
-##      3:      3   c  0.725362379 0.97257635
-##      4:      4   c -1.430266648 0.04127456
-##      5:      5   b  1.043445074 0.45378038
+<pre><code>##            ind grp         val      newnew
+##      1:      1   a  1.18126234 0.749668300
+##      2:      2   b -0.82819271 0.572169301
+##      3:      3   b -1.01646764 0.638131715
+##      4:      4   a -1.74805006 0.244819055
+##      5:      5   b  0.47432866 0.799832801
 ##     ---                                   
-##  99996:  99996   a  0.389750673 0.05934468
-##  99997:  99997   b  0.854971570 0.83144329
-##  99998:  99998   c -0.775468712 0.74532696
-##  99999:  99999   a -1.430625513 0.87011819
-## 100000: 100000   a -0.004633998 0.07208192</code></pre>
+##  99996:  99996   b  0.09647605 0.023336168
+##  99997:  99997   a -0.76529748 0.904369933
+##  99998:  99998   b  0.83032548 0.654767212
+##  99999:  99999   b  0.27663171 0.539618133
+## 100000: 100000   c  0.64259971 0.001217905</code></pre>
 </div>
 </div>
 <div id="summarising-and-grouping" class="section level1">
@@ -327,33 +321,33 @@ df %&gt;%
   group_by(grp) %&gt;% 
   summarise(mean(val))</code></pre>
 <pre><code>## # A tibble: 3 × 2
-##     grp  `mean(val)`
-##   &lt;chr&gt;        &lt;dbl&gt;
-## 1     a -0.003361635
-## 2     b  0.011856459
-## 3     c  0.004968274</code></pre>
+##     grp    `mean(val)`
+##   &lt;chr&gt;          &lt;dbl&gt;
+## 1     a  0.00203038837
+## 2     b -0.00001847522
+## 3     c -0.00332624514</code></pre>
 <pre class="r"><code>#using default naming
 dt[,mean(val), by=grp]</code></pre>
-<pre><code>##    grp           V1
-## 1:   b  0.011856459
-## 2:   c  0.004968274
-## 3:   a -0.003361635</code></pre>
+<pre><code>##    grp             V1
+## 1:   a  0.00203038837
+## 2:   b -0.00001847522
+## 3:   c -0.00332624514</code></pre>
 <pre class="r"><code>#using custom naming
 df %&gt;% 
   group_by(grp) %&gt;% 
   summarise(my_mean = mean(val))</code></pre>
 <pre><code>## # A tibble: 3 × 2
-##     grp      my_mean
-##   &lt;chr&gt;        &lt;dbl&gt;
-## 1     a -0.003361635
-## 2     b  0.011856459
-## 3     c  0.004968274</code></pre>
+##     grp        my_mean
+##   &lt;chr&gt;          &lt;dbl&gt;
+## 1     a  0.00203038837
+## 2     b -0.00001847522
+## 3     c -0.00332624514</code></pre>
 <pre class="r"><code>#using custom naming
 dt[,.(my_mean = mean(val)), by=grp]</code></pre>
-<pre><code>##    grp      my_mean
-## 1:   b  0.011856459
-## 2:   c  0.004968274
-## 3:   a -0.003361635</code></pre>
+<pre><code>##    grp        my_mean
+## 1:   a  0.00203038837
+## 2:   b -0.00001847522
+## 3:   c -0.00332624514</code></pre>
 </div>
 <div id="joins" class="section level1">
 <h1>Joins</h1>
@@ -377,32 +371,32 @@ merge(dt, dt2, by = &quot;ind&quot;, all.x = TRUE)</code></pre>
 <pre class="r"><code>df %&gt;% 
   mutate_all(as.character)</code></pre>
 <pre><code>## # A tibble: 100,000 × 3
-##      ind   grp                  val
-##    &lt;chr&gt; &lt;chr&gt;                &lt;chr&gt;
-## 1      1     b   -0.131300051357725
-## 2      2     b   -0.261926719040845
-## 3      3     c    0.725362379499655
-## 4      4     c    -1.43026664786305
-## 5      5     b      1.0434450742327
-## 6      6     b    0.519349742149127
-## 7      7     c   -0.245433391609701
-## 8      8     b -0.00534987960106205
-## 9      9     c   -0.606515212684536
-## 10    10     b   0.0538176880717522
+##      ind   grp                 val
+##    &lt;chr&gt; &lt;chr&gt;               &lt;chr&gt;
+## 1      1     a    1.18126233664027
+## 2      2     b  -0.828192708368278
+## 3      3     b   -1.01646764017467
+## 4      4     a   -1.74805006283215
+## 5      5     b    0.47432866168403
+## 6      6     a  -0.499547899752114
+## 7      7     b   -1.35681539580715
+## 8      8     c   -1.38033865008619
+## 9      9     c -0.0629816257182771
+## 10    10     c    1.02708478120163
 ## # ... with 99,990 more rows</code></pre>
 <pre class="r"><code>dt[,lapply(.SD, as.character)]</code></pre>
-<pre><code>##            ind grp                  val
-##      1:      1   b   -0.131300051357725
-##      2:      2   b   -0.261926719040845
-##      3:      3   c    0.725362379499655
-##      4:      4   c    -1.43026664786305
-##      5:      5   b      1.0434450742327
-##     ---                                
-##  99996:  99996   a    0.389750673389929
-##  99997:  99997   b    0.854971569945916
-##  99998:  99998   c   -0.775468711846425
-##  99999:  99999   a    -1.43062551275172
-## 100000: 100000   a -0.00463399771802117</code></pre>
+<pre><code>##            ind grp                val
+##      1:      1   a   1.18126233664027
+##      2:      2   b -0.828192708368278
+##      3:      3   b  -1.01646764017467
+##      4:      4   a  -1.74805006283215
+##      5:      5   b   0.47432866168403
+##     ---                              
+##  99996:  99996   b 0.0964760545868453
+##  99997:  99997   a -0.765297478720081
+##  99998:  99998   b  0.830325483688795
+##  99999:  99999   b  0.276631709362105
+## 100000: 100000   c  0.642599705198095</code></pre>
 </div>
 <div id="additional-stuff" class="section level1">
 <h1>Additional stuff</h1>
@@ -411,24 +405,24 @@ df %&gt;% count(grp)</code></pre>
 <pre><code>## # A tibble: 3 × 2
 ##     grp     n
 ##   &lt;chr&gt; &lt;int&gt;
-## 1     a 33357
-## 2     b 33363
-## 3     c 33280</code></pre>
+## 1     a 33378
+## 2     b 33575
+## 3     c 33047</code></pre>
 <pre class="r"><code>dt[,.N, grp]</code></pre>
 <pre><code>##    grp     N
-## 1:   b 33363
-## 2:   c 33280
-## 3:   a 33357</code></pre>
+## 1:   a 33378
+## 2:   b 33575
+## 3:   c 33047</code></pre>
 <pre class="r"><code>#eval operation to vector
 dt[,sum(val)]</code></pre>
-<pre><code>## [1] 448.7771</code></pre>
+<pre><code>## [1] -42.77243</code></pre>
 <pre class="r"><code>#eval operation to vector where 
 dt[grp==&quot;b&quot;, sum(val)]</code></pre>
-<pre><code>## [1] 395.567</code></pre>
+<pre><code>## [1] -0.6203054</code></pre>
 <pre class="r"><code>#referencing rows by key value
 setkey(dt, grp)
 dt[.(&quot;b&quot;), sum(val)]</code></pre>
-<pre><code>## [1] 395.567</code></pre>
+<pre><code>## [1] -0.6203054</code></pre>
 <p><a href="http://stackoverflow.com/questions/43957195/linear-interpolation-by-group-in-r/43957539#43957539">last minute example thrown in</a></p>
 </div>
 

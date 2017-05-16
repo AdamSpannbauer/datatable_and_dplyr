@@ -7,7 +7,7 @@ output:
 
 ```{r, message=FALSE,warning=FALSE}
 library(data.table)
-library(dplyr)
+library(tidyverse)
 ```
 
 #### resources
@@ -89,7 +89,7 @@ This example doesn't show it, but `fread` scales to much larger data sets better
 
 ```{r, echo=FALSE}
 options(scipen=999)
-df_time <- system.time(readr::read_csv("fwrite_out.csv"))
+df_time <- system.time(readr::read_csv("fwrite_out.csv", col_types = "icn"))
 dt_time <- system.time(data.table::fread("readr_out.csv"))
 ```
 
@@ -132,11 +132,11 @@ df[df$grp=="a",]
 
 ## Sorting
 
-Sort by `ind` in descending order.
+Sort by `grp`.
 ```{r, eval=FALSE}
 #dplyr
 df %>% 
-  arrange(desc(grp))
+  arrange(grp)
 
 #data.table
 dt[order(grp),]
@@ -258,4 +258,7 @@ dt[.("b"), sum(val)]
 ```
 
 [last minute example thrown in](http://stackoverflow.com/questions/43957195/linear-interpolation-by-group-in-r/43957539#43957539)
+
+
+
 
