@@ -1,9 +1,17 @@
 ---
-title: '`data.table` vs `tidyverse`'
-output:
-  html_document: default
-  html_notebook: default
+title: 'Data manipulation with `data.table` & `tidyverse`'
+output: html_document
 ---
+
+```{r, echo=FALSE}
+# ---
+# title: 'Data manipulation with `data.table` & `tidyverse`'
+# output:
+#   md_document:
+#     variant: markdown_github
+# ---
+```
+
 
 ```{r, message=FALSE,warning=FALSE}
 library(data.table)
@@ -12,7 +20,7 @@ library(tidyverse)
 
 #### resources
 
-free intro to both packages through [datacamp](https://www.datacamp.com/home) (more than intro costs $)
+free intro to data manipulation with `dplyr` and `data.table` through [datacamp](https://www.datacamp.com/home) (more than intro costs $)
 
 * [dplyr](https://www.datacamp.com/courses/dplyr-data-manipulation-r-tutorial)
 * [data.table](https://campus.datacamp.com/courses/data-table-data-manipulation-r-tutorial)
@@ -51,6 +59,8 @@ dt
 ```
 
 # Writing/Reading csvs
+
+__note: these timings were performed on windows 64bit (8core, 32gb ram); `readr::write_csv` performs much better writing this 100000 row df on a non windows machine__
 
 ## Writing
 Again, the syntax for writing csvs in both frameworks is very similiar to writing a csv in base.  An advantage of both over base, in my opinion, is the omission of writing row.names by default.  The `fwrite` function has the ability to set `row.names=TRUE` while the `readr` implementation does not have an argument for rownames.
